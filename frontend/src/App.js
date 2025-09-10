@@ -100,6 +100,43 @@ function URLShortenerPage() {
   );
 }
 
+//PAGE 2: STATS PAGE:
+function StatisticsPage() {
+  const [urls, setUrls] = useState(() => JSON.parse(localStorage.getItem("urls")) || []);
+
+  return (
+    <div className="p-4">
+      <h2 className="text-xl font-bold">URL Shortener Statistics Page</h2>
+      <Link className="text-blue-600 underline" to="/">
+        Back to URL Shortening page
+      </Link>
+      <ul>
+        {urls.map(u => (
+          //adding elements like  short url , long url , creation time , expiry time , total number of clicks 
+          <li key={u.code} className="border p-2 my-2">
+            <p>
+    
+              Short: {window.location.origin}/{u.code} <br />
+              Long: {u.longUrl} <br />
+              Created: {new Date(u.created).toLocaleString()} <br />
+              Expiry: {new Date(u.expiry).toLocaleString()} <br />
+              Total Clicks: {u.clicks.length}
+            </p>
+            <h4 className="font-semibold">Click Logs:</h4>
+            <ul>
+              {u.clicks.map((c, idx) => (
+                <li key={idx}>
+                  {c.time}
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 
 
 export default function App() {
@@ -107,7 +144,10 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<URLShortenerPage />} />
+        <Route path="/stats" element={<StatisticsPage />} />
+
       </Routes>
     </Router>
   );
 }
+
