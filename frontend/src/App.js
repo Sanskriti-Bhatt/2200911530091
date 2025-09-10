@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, useParams, useNavigate } from "react-router-dom";
+import "./App.css";
 
 const generateCode = () => Math.random().toString(36).substring(2, 7);
 
@@ -34,7 +35,7 @@ function URLShortenerPage() {
     for (let i = 0; i < inputs.length; i++) {
       const { url, expiry } = inputs[i];
 
-//3. unique url if not gives error - 
+  //3. unique url if not gives error - 
       let code =  generateCode();
       if (urls.find(u => u.code === code) || newEntries.find(u => u.code === code)) {
         alert(`Row ${i + 1}: Shortcode already exists`);
@@ -53,7 +54,7 @@ function URLShortenerPage() {
   };
 
   return (
-    <div className="p-4">
+    <div className="container">
       <h2 className="text-xl font-bold">URL Shortener Page</h2>
       {inputs.map((inp, idx) => (
         <div key={idx} className="flex gap-2 my-2">
@@ -84,7 +85,7 @@ function URLShortenerPage() {
       <h3 className="mt-4 font-semibold">Shortened Links</h3>
       <ul>
         {urls.map(u => (
-          <li key={u.code}>
+          <li key={u.code} className="card">
             <a href={`/${u.code}`} target="_blank" rel="noreferrer">
               {window.location.origin}/{u.code}
             </a>{" "}
@@ -105,7 +106,7 @@ function StatisticsPage() {
   const [urls, setUrls] = useState(() => JSON.parse(localStorage.getItem("urls")) || []);
 
   return (
-    <div className="p-4">
+    <div className="container">
       <h2 className="text-xl font-bold">URL Shortener Statistics Page</h2>
       <Link className="text-blue-600 underline" to="/">
         Back to URL Shortening page
@@ -113,7 +114,7 @@ function StatisticsPage() {
       <ul>
         {urls.map(u => (
           //adding elements like  short url , long url , creation time , expiry time , total number of clicks 
-          <li key={u.code} className="border p-2 my-2">
+          <li key={u.code} className="card">
             <p>
     
               Short: {window.location.origin}/{u.code} <br />
@@ -137,6 +138,42 @@ function StatisticsPage() {
   );
 }
 
+//for redirectiing when user clicks on short url it takes the the original url only 
+
+//function for redirectiong 
+function RedirectPage() {
+  const { code } = useParams();
+  const navigate = useNavigate();
+  const [urls, setUrls] = useState(() => JSON.parse(localStorage.getItem("urls")) || []);
+
+  useEffect(() => {
+    const entryIndex = urls.findIndex(u => u.code === code);
+    if (entryIndex === -1) {
+      alert("Invalid link");
+      navigate("/");
+      return;
+    }
+
+    const entry = urls[entryIndex];
+    if (Date.now() > entry.expiry) {
+      alert("Link expired");
+      navigate("/");
+      return;
+    }
+
+    entry.clicks.push({
+      time: new Date().toLocaleString(),
+      ref: document.referrer || "direct",
+      location: "unknown"
+    });
+
+    urls[entryIndex] = entry;
+    localStorage.setItem("urls", JSON.stringify(urls));
+    window.location.href = entry.longUrl;
+  }, [code, navigate, urls]);
+
+  return <p>Redirecting........</p>;
+}
 
 
 export default function App() {
@@ -145,9 +182,10 @@ export default function App() {
       <Routes>
         <Route path="/" element={<URLShortenerPage />} />
         <Route path="/stats" element={<StatisticsPage />} />
+         <Route path="/:code" element={<RedirectPage />} />
+
 
       </Routes>
     </Router>
   );
 }
-
